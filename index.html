@@ -3,92 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permainan Tebak Angka</title>
+    <title>Tic Tac Toe Neon</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('https://i.imgur.com/3Zc2t0L.jpg') no-repeat center center/cover;
+            overflow: hidden;
         }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
             padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
         }
         h1 {
-            color: #333;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
         }
-        input[type="number"] {
-            padding: 10px;
-            width: 60%;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin: 20px auto;
         }
-        button {
-            padding: 10px 20px;
-            border: none;
-            background: #007bff;
-            color: #fff;
-            border-radius: 5px;
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #0ff;
+            font-size: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #0ff;
+            border-radius: 10px;
             cursor: pointer;
+            box-shadow: 0 0 10px #0ff;
+            transition: all 0.2s ease;
         }
-        button:hover {
-            background: #0056b3;
+        .cell:hover {
+            box-shadow: 0 0 20px #0ff;
+            transform: scale(1.1);
         }
-        .result {
+        .cell.taken {
+            cursor: not-allowed;
+        }
+        .winner {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+        }
+        .reset-btn {
             margin-top: 20px;
-            font-size: 1.2em;
-            color: #555;
+            padding: 10px 20px;
+            background: #0ff;
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0 0 10px #0ff;
+            transition: all 0.2s ease;
+        }
+        .reset-btn:hover {
+            box-shadow: 0 0 20px #0ff;
+            transform: scale(1.1);
         }
         .watermark {
-            margin-top: 50px;
+            margin-top: 20px;
             font-size: 0.9em;
-            color: #aaa;
+            color: #fff;
+            text-shadow: 0 0 10px #fff, 0 0 20px #fff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Tebak Angka!</h1>
-        <p>Tebak angka antara 1 sampai 100</p>
-        <input type="number" id="guess" placeholder="Masukkan tebakan kamu">
-        <button onclick="checkGuess()">Tebak</button>
-        <div class="result" id="result"></div>
-    </div>
-    <div class="watermark">
-        &copy; Rafxz
+    <div class="game-container">
+        <h1>Tic Tac Toe</h1>
+        <div class="board" id="board"></div>
+        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+        <div class="watermark">&copy; Rafxz</div>
     </div>
 
     <script>
-        // Angka acak antara 1-100
-        const randomNumber = Math.floor(Math.random() * 100) + 1;
-        let attempts = 0;
+        const board = document.getElementById("board");
+        const cells = [];
+        let currentPlayer = "X";
+        let gameActive = true;
 
-        function checkGuess() {
-            const userGuess = document.getElementById('guess').value;
-            const result = document.getElementById('result');
-            attempts++;
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6],
+        ];
 
-            if (userGuess == randomNumber) {
-                result.textContent = `Selamat! Kamu menebak angka ${randomNumber} dengan benar dalam ${attempts} percobaan!`;
-                result.style.color = 'green';
-            } else if (userGuess > randomNumber) {
-                result.textContent = 'Terlalu tinggi! Coba angka yang lebih kecil.';
-                result.style.color = 'red';
-            } else if (userGuess < randomNumber) {
-                result.textContent = 'Terlalu rendah! Coba angka yang lebih besar.';
-                result.style.color = 'red';
-            } else {
-                result.textContent = 'Masukkan angka yang valid.';
-                result.style.color = 'orange';
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.addEventListener("click", () => handleClick(cell, i));
+                board.appendChild(cell);
+                cells.push(cell);
             }
         }
+
+        function handleClick(cell, index) {
+            if (!gameActive || cell.classList.contains("taken")) return;
+
+            cell.textContent = currentPlayer;
+            cell.classList.add("taken");
+
+            if (checkWin()) {
+                document.querySelector("h1").textContent = `Pemain ${currentPlayer} Menang!`;
+                document.querySelector("h1").classList.add("winner");
+                gameActive = false;
+                return;
+            }
+
+            if (cells.every((c) => c.classList.contains("taken"))) {
+                document.querySelector("h1").textContent = "Hasil Seri!";
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+        }
+
+        function checkWin() {
+            return winningCombinations.some((combination) => {
+                return combination.every(
+                    (index) => cells[index].textContent === currentPlayer
+                );
+            });
+        }
+
+        function resetGame() {
+            cells.forEach((cell) => {
+                cell.textContent = "";
+                cell.classList.remove("taken");
+            });
+            currentPlayer = "X";
+            gameActive = true;
+            document.querySelector("h1").textContent = "Tic Tac Toe";
+            document.querySelector("h1").classList.remove("winner");
+        }
+
+        createBoard();
     </script>
 </body>
 </html>
