@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permainan Tebak Angka</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="number"] {
+            padding: 10px;
+            width: 60%;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .watermark {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tebak Angka!</h1>
+        <p>Tebak angka antara 1 sampai 100</p>
+        <input type="number" id="guess" placeholder="Masukkan tebakan kamu">
+        <button onclick="checkGuess()">Tebak</button>
+        <div class="result" id="result"></div>
+    </div>
+    <div class="watermark">
+        &copy; Rafxz
+    </div>
+
+    <script>
+        // Angka acak antara 1-100
+        const randomNumber = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+
+        function checkGuess() {
+            const userGuess = document.getElementById('guess').value;
+            const result = document.getElementById('result');
+            attempts++;
+
+            if (userGuess == randomNumber) {
+                result.textContent = `Selamat! Kamu menebak angka ${randomNumber} dengan benar dalam ${attempts} percobaan!`;
+                result.style.color = 'green';
+            } else if (userGuess > randomNumber) {
+                result.textContent = 'Terlalu tinggi! Coba angka yang lebih kecil.';
+                result.style.color = 'red';
+            } else if (userGuess < randomNumber) {
+                result.textContent = 'Terlalu rendah! Coba angka yang lebih besar.';
+                result.style.color = 'red';
+            } else {
+                result.textContent = 'Masukkan angka yang valid.';
+                result.style.color = 'orange';
+            }
+        }
+    </script>
+</body>
+</html>
