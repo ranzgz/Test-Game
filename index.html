@@ -3,164 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe Neon</title>
+    <title>Welcome | Tic Tac Toe</title>
     <style>
+        /* General Styling */
         body {
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
+            background: url('https://i.imgur.com/3Zc2t0L.jpg') no-repeat center center/cover;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: url('https://i.imgur.com/3Zc2t0L.jpg') no-repeat center center/cover;
+            color: white;
             overflow: hidden;
         }
-        .game-container {
+
+        #welcome-screen, #game-screen {
+            display: none;
             text-align: center;
             background: rgba(0, 0, 0, 0.8);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
-        h1 {
-            color: #0ff;
-            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+
+        #welcome-screen {
+            display: block;
+            animation: fadeIn 1s ease;
         }
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 10px;
-            margin: 20px auto;
+
+        .typing {
+            width: 90%;
+            margin: 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid #0ff;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px #0ff;
         }
-        .cell {
-            width: 100px;
-            height: 100px;
-            background: rgba(0, 0, 0, 0.9);
-            color: #0ff;
-            font-size: 2em;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid #0ff;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 0 10px #0ff;
-            transition: all 0.2s ease;
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
         }
-        .cell:hover {
-            box-shadow: 0 0 20px #0ff;
-            transform: scale(1.1);
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .cell.taken {
-            cursor: not-allowed;
+
+        @keyframes blink {
+            0% { border-right-color: #0ff; }
+            50% { border-right-color: transparent; }
+            100% { border-right-color: #0ff; }
         }
-        .winner {
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+
+        .typing span {
+            animation: typing 3s steps(30, end), blink 0.7s step-end infinite;
         }
-        .reset-btn {
+
+        button {
             margin-top: 20px;
             padding: 10px 20px;
+            font-size: 1.2em;
             background: #0ff;
             color: #000;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1em;
             box-shadow: 0 0 10px #0ff;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
-        .reset-btn:hover {
+
+        button:hover {
             box-shadow: 0 0 20px #0ff;
             transform: scale(1.1);
         }
-        .watermark {
+
+        /* Game Screen */
+        #game-screen .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 10px;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            font-size: 2em;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #0ff;
+            border-radius: 10px;
+            color: #0ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px #0ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        .result {
             margin-top: 20px;
-            font-size: 0.9em;
+            font-size: 1.5em;
             color: #fff;
-            text-shadow: 0 0 10px #fff, 0 0 20px #fff;
+            text-shadow: 0 0 10px #fff;
+        }
+
+        .result.win {
+            color: #0f0;
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <div class="typing">
+            <span>Website ini dibuat oleh Rafxz</span>
+        </div>
+        <button onclick="startGame()">Lanjutkan</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen">
         <h1>Tic Tac Toe</h1>
         <div class="board" id="board"></div>
-        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
-        <div class="watermark">&copy; Rafxz</div>
+        <div class="result" id="result"></div>
+        <button onclick="resetGame()">Reset Game</button>
     </div>
 
     <script>
-        const board = document.getElementById("board");
+        // Sambutan awal
+        function startGame() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            createBoard();
+        }
+
+        // Tic Tac Toe Logic
+        const board = document.getElementById('board');
         const cells = [];
         let currentPlayer = "X";
         let gameActive = true;
 
-        const winningCombinations = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6],
-        ];
-
         function createBoard() {
+            board.innerHTML = ''; // Clear previous board
             for (let i = 0; i < 9; i++) {
-                const cell = document.createElement("div");
-                cell.classList.add("cell");
-                cell.addEventListener("click", () => handleClick(cell, i));
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handlePlayerMove(cell, i));
                 board.appendChild(cell);
                 cells.push(cell);
             }
         }
 
-        function handleClick(cell, index) {
-            if (!gameActive || cell.classList.contains("taken")) return;
+        function handlePlayerMove(cell, index) {
+            if (!gameActive || cell.classList.contains('taken')) return;
 
+            // Player move
             cell.textContent = currentPlayer;
-            cell.classList.add("taken");
+            cell.classList.add('taken');
 
-            if (checkWin()) {
-                document.querySelector("h1").textContent = `Pemain ${currentPlayer} Menang!`;
-                document.querySelector("h1").classList.add("winner");
-                gameActive = false;
+            if (checkWin(currentPlayer)) {
+                displayResult(`Selamat! Pemain ${currentPlayer} Menang!`, true);
                 return;
             }
 
-            if (cells.every((c) => c.classList.contains("taken"))) {
-                document.querySelector("h1").textContent = "Hasil Seri!";
-                gameActive = false;
-                return;
-            }
-
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            // Bot move
+            currentPlayer = "O";
+            botMove();
         }
 
-        function checkWin() {
-            return winningCombinations.some((combination) => {
-                return combination.every(
-                    (index) => cells[index].textContent === currentPlayer
-                );
-            });
+        function botMove() {
+            setTimeout(() => {
+                const availableCells = cells.filter(cell => !cell.classList.contains('taken'));
+                if (availableCells.length === 0) {
+                    displayResult("Hasil Seri!", false);
+                    return;
+                }
+
+                const randomIndex = Math.floor(Math.random() * availableCells.length);
+                const botCell = availableCells[randomIndex];
+                botCell.textContent = currentPlayer;
+                botCell.classList.add('taken');
+
+                if (checkWin(currentPlayer)) {
+                    displayResult(`Bot (${currentPlayer}) Menang!`, false);
+                    return;
+                }
+
+                currentPlayer = "X";
+            }, 500);
+        }
+
+        function checkWin(player) {
+            const winningCombinations = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6],
+            ];
+
+            return winningCombinations.some(combination => 
+                combination.every(index => cells[index].textContent === player)
+            );
+        }
+
+        function displayResult(message, isWin) {
+            gameActive = false;
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = isWin ? 'result win' : 'result';
         }
 
         function resetGame() {
-            cells.forEach((cell) => {
-                cell.textContent = "";
-                cell.classList.remove("taken");
-            });
             currentPlayer = "X";
             gameActive = true;
-            document.querySelector("h1").textContent = "Tic Tac Toe";
-            document.querySelector("h1").classList.remove("winner");
+            document.getElementById('result').textContent = '';
+            createBoard();
         }
-
-        createBoard();
     </script>
 </body>
 </html>
